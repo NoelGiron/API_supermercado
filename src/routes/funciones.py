@@ -49,8 +49,7 @@ def crear_producto():
 @funciones_bp.route('/productos/lista', methods=['GET'])
 def listar_productos():
         
-        archivo_json = 'database/inventario.json'  # ← Ruta a la carpeta database
-        
+        archivo_json = 'database/inventario.json'  
         if not os.path.exists(archivo_json) or os.path.getsize(archivo_json) == 0:
             return jsonify({
                 'mensaje': 'No hay productos en el inventario',
@@ -66,6 +65,32 @@ def listar_productos():
         })
 
 @funciones_bp.route('/usuarios/eliminar')
-def obtener_usuario(id):
-    return {'mensaje': f'Usuario {id}'}
+def eliminar_producto(indice):
+
+    archivo_json = 'database/inventario.json'
+        
+    if not os.path.exists(archivo_json):
+        return jsonify({'error': 'No existe el archivo de inventario'}), 404
+    
+    with open(archivo_json, 'r', encoding='utf-8') as file:
+        productos = json.load(file)
+    
+    if indice < 0 or indice >= len(productos):
+        return jsonify({
+            'error': f'Índice {indice} fuera de rango. Hay {len(productos)} productos'
+        })
+    
+    producto_eliminado = productos[indice]
+    
+    producto_eliminado = productos.pop(indice)
+    
+    with open(archivo_json, 'w', encoding='utf-8') as file:
+        json.dump(productos, file, indent=4, ensure_ascii=False)
+    
+    return jsonify({
+        'mensaje': 'Producto eliminado exitosamente',
+        'producto_eliminado': producto_eliminado,
+        'total_productos_restantes': len(productos)
+    })
+    return
 
