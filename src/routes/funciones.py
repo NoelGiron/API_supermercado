@@ -1,7 +1,8 @@
+import os
 from models.producto import producto
 from models.inventario import inventario
 
-from flask import Blueprint, request
+from flask import Blueprint, json, request
 
 nuevo_inventario = inventario()
 
@@ -19,9 +20,31 @@ def crear_producto():
     vencimiento = data['vencimiento']
 
     nuevo_producto = producto(nombre, categoria, descripcion, precio, cantidad, vencimiento)
-    nuevo_inventario.agregar_producto(nuevo_producto)
+    
+    archivo_json = 'database/inventario.json'
+    if os.path.exists(archivo_json) and os.path.getsize(archivo_json) > 0:
+        with open(archivo_json, 'r', encoding='utf-8') as file:
+            productos_data = json.load(file)
 
-    return {'mensaje': 'el producto se a agregado al inventario'}
+            for producto_data in productos_data:
+                producto_existente = producto(
+                        producto_data['nombre'],
+                        producto_data['categoria'],
+                        producto_data['descripcion'],
+                        producto_data['precio'],
+                        producto_data['cantidad'],
+                        producto_data['vencimiento']
+                )
+                nuevo_inventario.agregar_producto(producto_existente)
+
+        nuevo_inventario.agregar_producto(nuevo_producto)
+
+        productos_para_json = [prod.to_dict() for prod in nuevo_inventario.lista_productos]
+
+        with open(archivo_json, 'w', encoding='utf-8') as file:
+            json.dump(productos_para_json, file, indent=4, ensure_ascii=False)
+
+    return {'producto': nuevo_producto.to_dict}
 
 @funciones_bp.route('/productos/lista')
 def mostrar_inventario():
