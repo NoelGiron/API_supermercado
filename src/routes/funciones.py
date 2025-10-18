@@ -2,7 +2,7 @@ import os
 from models.producto import producto
 from models.inventario import inventario
 
-from flask import Blueprint, json, request
+from flask import Blueprint, json, jsonify, request
 
 nuevo_inventario = inventario()
 
@@ -46,10 +46,24 @@ def crear_producto():
 
     return {'producto': nuevo_producto.to_dict}
 
-@funciones_bp.route('/productos/lista')
-def mostrar_inventario():
-    inventario
-    return {'mensaje': 'Lista de productos'}
+@funciones_bp.route('/productos/lista', methods=['GET'])
+def listar_productos():
+        
+        archivo_json = 'database/inventario.json'  # ← Ruta a la carpeta database
+        
+        if not os.path.exists(archivo_json) or os.path.getsize(archivo_json) == 0:
+            return jsonify({
+                'mensaje': 'No hay productos en el inventario',
+                'productos': []
+            })
+
+        with open(archivo_json, 'r', encoding='utf-8') as file:
+            productos = json.load(file)
+
+        return jsonify({
+            'total_productos': len(productos),
+            'productos': productos
+        })
 
 @funciones_bp.route('/usuarios/eliminar')
 def obtener_usuario(id):
